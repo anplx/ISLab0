@@ -1,0 +1,65 @@
+<html>
+  <body>
+    Write some personal data:<p/>
+    <input type="text" id="input_text">
+    <button onclick="on_click()">send</button>
+    <p/>
+    <table id="table">
+    </table>
+
+    <script type=text/javascript>
+      let table = document.getElementById("table");
+      let input_text = document.getElementById("input_text");
+      let saved_flags = [];
+
+      async function save_flag(flag_text) {
+        const response = await fetch("/flag", {
+          method: "POST",
+          body: JSON.stringify({"flag": flag_text}),
+        });
+        const response_json = await response.json();
+        if (response_json.status != "ok") {
+          alert(response_json.status);
+          console.error(response_json);
+          return undefined;
+        }
+        return add_flag(response_json.id);
+      }
+
+      async function add_flag(flag_id) {
+        let new_row = table.insertRow(-1);
+        let text_cell = new_row.insertCell(0);
+        let button_cell = new_row.insertCell(1);
+
+        let new_text = document.createTextNode(flag_id);
+        text_cell.appendChild(new_text);
+
+        let new_button = document.createElement("button");
+        new_button.textContent = "get";
+        new_button.onclick = async () => {
+          const response = await fetch("./flag/" + flag_id);
+          const json = await response.json();
+          alert(`flag: ${json.flag.flag}, added: ${json.flag.added}`);
+        };
+        button_cell.appendChild(new_button);
+        return flag_id;
+      }
+
+      let saved_flags_json = localStorage.getItem("flags");
+      if (saved_flags_json == undefined) {
+      } else {
+        saved_flags = JSON.parse(saved_flags_json);
+        saved_flags.forEach(flag_id => add_flag(flag_id));
+      }
+
+      function on_click() {
+        let current_text = input_text.value;
+        input_text.value = "";
+        save_flag(current_text).then(flag_id => {
+          if (flag_id == undefined)  return;
+          saved_flags.push(flag_id);
+          localStorage.setItem("flags", JSON.stringify(saved_flags));
+        })
+      }
+
+    </script>

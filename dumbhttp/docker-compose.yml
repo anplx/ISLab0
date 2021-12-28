@@ -1,0 +1,9 @@
+version: "3.3"
+
+services:
+  dumbhttp:
+    build: .
+    image: dumbhttp:latest
+    restart: always
+    ports:
+      - "2001:2001"
